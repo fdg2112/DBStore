@@ -1,8 +1,23 @@
+using DBStore.Infrastructure.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Repositorios
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IRoleRepository, EfRoleRepository>();
+builder.Services.AddScoped<IProductRepository, EfProductRepository>();
+builder.Services.AddScoped<ICartRepository, EfCartRepository>();
+builder.Services.AddScoped<ICartItemRepository, EfCartItemRepository>();
+builder.Services.AddScoped<IFavoriteRepository, EfFavoriteRepository>();
+builder.Services.AddScoped<IShippingAddressRepository, EfShippingAddressRepository>();
+builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
+builder.Services.AddScoped<IOrderItemRepository, EfOrderItemRepository>();
+builder.Services.AddScoped<IAuditLogRepository, EfAuditLogRepository>();
+
 
 var app = builder.Build();
 
