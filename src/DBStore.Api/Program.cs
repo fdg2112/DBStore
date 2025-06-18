@@ -1,10 +1,22 @@
+using DBStore.Infrastructure.Data;
 using DBStore.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+using EFCore.NamingConventions;
+using DBStore.Domain.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<ApplicationDbContext>(opts =>
+    opts.UseNpgsql(conn)
+        .UseSnakeCaseNamingConvention()
+);
+
 
 // Repositorios
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
