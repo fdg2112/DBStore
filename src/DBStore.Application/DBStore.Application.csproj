@@ -23,8 +23,4 @@
     <ProjectReference Include="..\DBStore.Infrastructure\DBStore.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTOs\" />
-  </ItemGroup>
-
 </Project>

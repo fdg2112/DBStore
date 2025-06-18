@@ -3,6 +3,9 @@ using DBStore.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using EFCore.NamingConventions;
 using DBStore.Domain.Contracts;
+using DBStore.Application.Interfaces;
+using DBStore.Application.Services;
+using DBStore.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +20,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(opts =>
         .UseSnakeCaseNamingConvention()
 );
 
-
 // Repositorios
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddScoped<IRoleRepository, EfRoleRepository>();
@@ -30,6 +32,15 @@ builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<IOrderItemRepository, EfOrderItemRepository>();
 builder.Services.AddScoped<IAuditLogRepository, EfAuditLogRepository>();
 
+// Services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IShippingAddressService, ShippingAddressService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 var app = builder.Build();
 
