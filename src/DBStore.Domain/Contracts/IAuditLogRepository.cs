@@ -1,3 +1,5 @@
+namespace DBStore.Domain.Contracts;
+
 ﻿using DBStore.Domain.Entities;
 
 public interface IAuditLogRepository
