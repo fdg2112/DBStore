@@ -8,7 +8,7 @@ using DBStore.Application.DTOs.Orders;
 using DBStore.Application.DTOs.Audit;
 using DBStore.Domain.Entities;
 
-namespace DBStore.Application
+namespace DBStore.Application.Mapping
 {
     public class MappingProfile : Profile
     {
