@@ -23,4 +23,8 @@
     <ProjectReference Include="..\DBStore.Application\DBStore.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
