@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using DBStore.Domain.Contracts;
+﻿using DBStore.Domain.Contracts;
 using DBStore.Domain.Entities;
 using DBStore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;

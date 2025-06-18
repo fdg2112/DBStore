@@ -1,12 +1,12 @@
-namespace DBStore.Domain.Contracts;
-
 ﻿using DBStore.Domain.Entities;
-
-public interface IOrderItemRepository
+namespace DBStore.Domain.Contracts
 {
-    Task<OrderItem?> GetByIdAsync(Guid id);
-    Task<IEnumerable<OrderItem>> ListByOrderAsync(Guid orderId);
-    Task AddAsync(OrderItem item);
-    Task UpdateAsync(OrderItem item);
-    Task DeleteAsync(Guid id);
+    public interface IOrderItemRepository
+    {
+        Task<OrderItem?> GetByIdAsync(Guid id);
+        Task<IEnumerable<OrderItem>> ListByOrderAsync(Guid orderId);
+        Task AddAsync(OrderItem item);
+        Task UpdateAsync(OrderItem item);
+        Task DeleteAsync(Guid id);
+    }
 }

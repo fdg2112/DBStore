@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using DBStore.Domain.Contracts;
+﻿using DBStore.Domain.Contracts;
 using DBStore.Domain.Entities;
 using DBStore.Infrastructure.Data;
 

@@ -1,12 +1,12 @@
-namespace DBStore.Domain.Contracts;
-
 ﻿using DBStore.Domain.Entities;
-
-public interface IUserRepository
+namespace DBStore.Domain.Contracts
 {
-    Task<User?> GetByIdAsync(Guid id);
-    Task<User?> GetByEmailAsync(string email);
-    Task AddAsync(User user);
-    Task UpdateAsync(User user);
-    Task DeleteAsync(Guid id);
+    public interface IUserRepository
+    {
+        Task<User?> GetByIdAsync(Guid id);
+        Task<User?> GetByEmailAsync(string email);
+        Task AddAsync(User user);
+        Task UpdateAsync(User user);
+        Task DeleteAsync(Guid id);
+    }
 }

@@ -1,9 +1,9 @@
-namespace DBStore.Domain.Contracts;
-
-﻿using DBStore.Domain.Entities;
-
-public interface IAuditLogRepository
+using DBStore.Domain.Entities;
+namespace DBStore.Domain.Contracts
 {
-    Task AddAsync(AuditLog log);
-    Task<IEnumerable<AuditLog>> ListAllAsync();      // para admin
+    public interface IAuditLogRepository
+    {
+        Task AddAsync(AuditLog log);
+        Task<IEnumerable<AuditLog>> ListAllAsync();      // para admin
+    }
 }
