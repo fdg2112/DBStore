@@ -124,20 +124,3 @@ public interface IAuditLogRepository { … }
 
 ---
 
-## 🔨 Próximos pasos
-
-1. **Implementar** repositorios en `DBStore.Infrastructure` usando `ApplicationDbContext`.  
-2. **Registrar** las inyecciones en `DBStore.Api/Program.cs`:  
-   ```csharp
-   builder.Services
-     .AddScoped<IProductRepository, EfProductRepository>()
-     .AddScoped<ICartRepository, EfCartRepository>()
-     // …
-   ```
-3. **Crear** servicios en `DBStore.Application` para cada caso de uso.  
-4. **Desarrollar** controllers y endpoints en `DBStore.Api`.  
-5. **Arrancar** front React y conectar con la API.
-
----
-
-¡Listo para subir a GitHub y seguir avanzando!
