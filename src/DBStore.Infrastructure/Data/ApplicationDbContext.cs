@@ -27,6 +27,8 @@ public partial class ApplicationDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -41,7 +43,34 @@ public partial class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Aquí podés agregar configuraciones extra (índices, enums de tu dominio, etc.)
+        // PK compuesta
+        modelBuilder.Entity<UserRole>()
+            .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+        // relación UserRole → User
+        modelBuilder.Entity<UserRole>()
+            .HasOne(ur => ur.User)
+            .WithMany(u => u.UserRoles)
+            .HasForeignKey(ur => ur.UserId);
+
+        // relación UserRole → Role
+        modelBuilder.Entity<UserRole>()
+            .HasOne(ur => ur.Role)
+            .WithMany(r => r.UserRoles)
+            .HasForeignKey(ur => ur.RoleId);
+
+        // CartItem → Cart
+        modelBuilder.Entity<CartItem>()
+            .HasOne(ci => ci.Cart)
+            .WithMany(c => c.Items)
+            .HasForeignKey(ci => ci.CartId);
+
+        // OrderItem → Order
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(oi => oi.Order)
+            .WithMany(o => o.Items)
+            .HasForeignKey(oi => oi.OrderId);
+
         OnModelCreatingPartial(modelBuilder);
     }
 

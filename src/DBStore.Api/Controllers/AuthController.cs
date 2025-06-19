@@ -7,6 +7,7 @@ using AutoMapper;
 using DBStore.Application.DTOs.Auth;
 using DBStore.Domain.Contracts;
 using DBStore.Domain.Entities;
+using DBStore.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -19,17 +20,21 @@ namespace DBStore.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserRepository _userRepo;
+        private readonly IRoleRepository _roleRepo;
         private readonly IPasswordHasher<User> _hasher;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
 
+
         public AuthController(
             IUserRepository userRepo,
+            IRoleRepository roleRepo,
             IPasswordHasher<User> hasher,
             IMapper mapper,
             IConfiguration config)
         {
             _userRepo = userRepo;
+            _roleRepo = roleRepo;
             _hasher = hasher;
             _mapper = mapper;
             _config = config;
@@ -44,8 +49,7 @@ namespace DBStore.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var exists = await _userRepo.GetByEmailAsync(dto.Email);
-            if (exists != null)
+            if (await _userRepo.GetByEmailAsync(dto.Email) != null)
                 return Conflict("Ya existe un usuario con ese email");
 
             var user = new User
@@ -58,18 +62,29 @@ namespace DBStore.Api.Controllers
             };
             user.PasswordHash = _hasher.HashPassword(user, dto.Password);
 
+            // 1) Creo el usuario en la BD
             await _userRepo.AddAsync(user);
 
-            var token = GenerateJwt(user, "user");
+            // 2) Asigno rol 'client'
+            var clientRole = await _roleRepo.GetByNameAsync("client");
+            if (clientRole == null)
+                return StatusCode(500, "El rol 'client' no está en la base");
+
+            var db = HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+            db.UserRoles.Add(new UserRole
+            {
+                UserId = user.Id,
+                RoleId = clientRole.Id
+            });
+            await db.SaveChangesAsync();
+
+            // 3) Genero el JWT con rol 'client'
+            var token = GenerateJwt(user, "client");
             var userDto = _mapper.Map<UserDto>(user);
 
-            var response = new AuthResponseDto
-            {
-                User = userDto,
-                Token = token
-            };
-            return Created("", response);
+            return Created("", new AuthResponseDto { User = userDto, Token = token });
         }
+
 
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponseDto), 200)]

@@ -12,5 +12,11 @@ namespace DBStore.Domain.Entities
         public string? AvatarUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        public ICollection<Cart> Carts { get; set; } = new List<Cart>();
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+        public ICollection<ShippingAddress> ShippingAddresses { get; set; } = new List<ShippingAddress>();
+
     }
 }
