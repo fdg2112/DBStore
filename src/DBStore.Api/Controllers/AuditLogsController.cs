@@ -1,13 +1,13 @@
 using AutoMapper;
 using DBStore.Application.DTOs.Audit;
 using DBStore.Application.Interfaces;
-using DBStore.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 namespace DBStore.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/audit-logs")]
+    [Authorize(Roles = "admin")]
     public class AuditLogsController : ControllerBase
     {
         private readonly IAuditLogService _service;
@@ -20,6 +20,7 @@ namespace DBStore.Api.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<AuditLogDto>), 200)]
         public async Task<ActionResult<IEnumerable<AuditLogDto>>> GetAll()
         {
             var logs = await _service.ListAllAsync();

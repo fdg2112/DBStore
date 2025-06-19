@@ -10,6 +10,8 @@ using DBStore.Domain.Contracts;
 using DBStore.Application.Interfaces;
 using DBStore.Application.Services;
 using DBStore.Application;
+using DBStore.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(opts =>
     opts.UseNpgsql(conn)
         .UseSnakeCaseNamingConvention()
 );
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // 4) Repositorios
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
