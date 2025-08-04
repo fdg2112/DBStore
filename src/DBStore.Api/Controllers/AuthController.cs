@@ -1,5 +1,7 @@
-﻿using System;
+﻿// src/DBStore.Api/Controllers/AuthController.cs
+using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +13,9 @@ using DBStore.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 
 namespace DBStore.Api.Controllers
 {
@@ -24,20 +28,22 @@ namespace DBStore.Api.Controllers
         private readonly IPasswordHasher<User> _hasher;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
-
+        private readonly ApplicationDbContext _db;
 
         public AuthController(
             IUserRepository userRepo,
             IRoleRepository roleRepo,
             IPasswordHasher<User> hasher,
             IMapper mapper,
-            IConfiguration config)
+            IConfiguration config,
+            ApplicationDbContext db)        // inyectamos el contexto
         {
             _userRepo = userRepo;
             _roleRepo = roleRepo;
             _hasher = hasher;
             _mapper = mapper;
             _config = config;
+            _db = db;
         }
 
         [HttpPost("register")]
@@ -62,7 +68,7 @@ namespace DBStore.Api.Controllers
             };
             user.PasswordHash = _hasher.HashPassword(user, dto.Password);
 
-            // 1) Creo el usuario en la BD
+            // 1) Creo el usuario
             await _userRepo.AddAsync(user);
 
             // 2) Asigno rol 'client'
@@ -70,21 +76,20 @@ namespace DBStore.Api.Controllers
             if (clientRole == null)
                 return StatusCode(500, "El rol 'client' no está en la base");
 
-            var db = HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
-            db.UserRoles.Add(new UserRole
+            _db.UserRoles.Add(new UserRole
             {
                 UserId = user.Id,
                 RoleId = clientRole.Id
             });
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-            // 3) Genero el JWT con rol 'client'
-            var token = GenerateJwt(user, "client");
+            // 3) Genero el JWT con rol real
+            var roles = new[] { clientRole.Name };
+            var token = GenerateJwt(user, roles);
             var userDto = _mapper.Map<UserDto>(user);
 
-            return Created("", new AuthResponseDto { User = userDto, Token = token });
+            return Created(string.Empty, new AuthResponseDto { User = userDto, Token = token });
         }
-
 
         [HttpPost("login")]
         [ProducesResponseType(typeof(AuthResponseDto), 200)]
@@ -102,28 +107,36 @@ namespace DBStore.Api.Controllers
             if (res == PasswordVerificationResult.Failed)
                 return Unauthorized("Credenciales inválidas");
 
-            // Por ahora todos son 'user'; si hacés roles reales, sacalos de la BD.
-            var token = GenerateJwt(user, "user");
+            // 1) Obtengo los roles reales desde la BD
+            var roleNames = await _db.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .Join(_db.Roles,
+                      ur => ur.RoleId,
+                      r => r.Id,
+                      (ur, r) => r.Name)
+                .ToListAsync();
+
+            // 2) Genero el JWT con esos roles
+            var token = GenerateJwt(user, roleNames);
             var userDto = _mapper.Map<UserDto>(user);
 
-            return Ok(new AuthResponseDto
-            {
-                User = userDto,
-                Token = token
-            });
+            return Ok(new AuthResponseDto { User = userDto, Token = token });
         }
 
-        private string GenerateJwt(User user, string role)
+        // Ahora soporta múltiples roles
+        private string GenerateJwt(User user, IEnumerable<string> roles)
         {
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]!);
             var creds = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
+
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub,   user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(ClaimTypes.Role, role),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+                new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString())
+            }
+            .Concat(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
