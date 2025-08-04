@@ -145,4 +145,8 @@ app.MapControllers();
 // (Opcional) El viejo weatherforecast si lo querés seguir teniendo:
 // app.MapGet("/weatherforecast", () => /* ... */);
 
+// Un endpoint simple para que el load-balancer sepa que la app está viva
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }))
+   .ExcludeFromDescription();  // opcional: no aparece en Swagger
+
 app.Run();
