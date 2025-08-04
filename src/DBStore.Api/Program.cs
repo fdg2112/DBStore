@@ -12,12 +12,42 @@ using DBStore.Application.Services;
 using DBStore.Application;
 using DBStore.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1) Swagger / OpenAPI
-builder.Services.AddEndpointsApiExplorer();        // para MapControllers+Swagger
-builder.Services.AddSwaggerGen();                  // agrega swagger UI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    // (opcional) Si querés nombrar tu doc:
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "DBStore API", Version = "v1" });
+
+    // Definición del esquema de seguridad "Bearer"
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Ingrese **Bearer &lt;su_token&gt;** para autenticarse."
+    });
+
+    // Requisito global: todos los endpoints usan ese esquema
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // 2) CORS
 builder.Services.AddCors(options =>
@@ -89,13 +119,18 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 // Pipeline
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DBStore API V1");
+    c.RoutePrefix = "swagger";  // puedes omitir para dejarlo en la raíz
+});
+
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 
 // CORS
 app.UseCors();
